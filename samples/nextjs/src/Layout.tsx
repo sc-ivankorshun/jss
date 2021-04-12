@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useI18n } from 'next-localization';
 import { getPublicUrl } from 'lib/util';
 import {
@@ -9,6 +9,8 @@ import {
   useSitecoreContext,
 } from '@sitecore-jss/sitecore-jss-nextjs';
 import { StyleguideSitecoreContextValue } from 'lib/component-props';
+
+import { trackingService } from 'lib/personalization-factory'
 
 // Prefix public assets with a public URL to enable compatibility with Sitecore Experience Editor.
 // If you're not supporting the Experience Editor, you can remove this.
@@ -63,6 +65,9 @@ const Layout = ({ context }: LayoutProps): JSX.Element => {
 
   const { route } = context;
 
+  const [ triggerCount, setTrigger] = useState(0);
+  const trackingEnabled = typeof window !== 'undefined' && localStorage.getItem('trackingEnabled') === '1';
+
   return (
     <>
       <Head>
@@ -81,12 +86,27 @@ const Layout = ({ context }: LayoutProps): JSX.Element => {
 
       <Navigation />
 
+      <div suppressHydrationWarning={true}>
+        {trackingEnabled ? null : <button onClick={enableTracking}>Allow Tracking</button>}
+      </div>
+
       {/* root placeholder for the app, which we add components to using route data */}
       <div className="container">
         <Placeholder name="jss-main" rendering={route} />
       </div>
     </>
   );
+
+  function enableTracking() {
+    localStorage.setItem('trackingEnabled', '1');
+    
+    if (route.itemId)
+    {
+      trackingService.trackCurrentPage(route.itemId)
+    }
+    
+    setTrigger(triggerCount+1);
+  }
 };
 
 export default Layout;

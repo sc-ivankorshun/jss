@@ -15,6 +15,9 @@ export interface TrackingRequestOptions {
    */
   querystringParams?: { [key: string]: unknown };
 
+  /** TODO: Document */
+  currentPageParamsToTrack?: string[];
+
   /** Type of tracking request action. Default: 'event' */
   action?: string;
 

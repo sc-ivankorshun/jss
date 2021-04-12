@@ -13,6 +13,9 @@ import { sitecorePagePropsFactory } from 'lib/page-props-factory';
 import { componentFactory } from 'temp/componentFactory';
 import { sitemapFetcher } from 'lib/sitemap-fetcher';
 
+import { areQueryParamsReady } from 'lib/double-page-load-workaround';
+import { personalizationService } from 'lib/personalization-factory';
+
 const SitecorePage = ({ notFound, layoutData, componentProps }: SitecorePageProps): JSX.Element => {
   useEffect(() => {
     // Since Experience Editor does not support Fast Refresh need to refresh EE chromes after Fast Refresh finished
@@ -29,6 +32,16 @@ const SitecorePage = ({ notFound, layoutData, componentProps }: SitecorePageProp
     itemId: layoutData.sitecore.route?.itemId,
     ...layoutData.sitecore.context,
   };
+
+  if (areQueryParamsReady()) {
+    const trackingEnabled: boolean = typeof window !== 'undefined' && localStorage.getItem('trackingEnabled') === '1';
+
+    // The second param allows to disable page tracking and only perform personalization
+    // It can be used for user consent scenarios or for integration with Sitecore XM
+    personalizationService.personalize(layoutData, trackingEnabled);
+
+    console.log('page load');
+  }
 
   return (
     <ComponentPropsContext value={componentProps}>
